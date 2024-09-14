@@ -1,0 +1,113 @@
+<!-- base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Video Subtitles Platform{% endblock %}</title>
+    {% load static %}
+
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    <style>
+    /* Hide the element with this combination of classes */
+    .vjs-subs-caps-button.vjs-menu-button.vjs-menu-button-popup.vjs-button {
+        display: none !important;
+    }
+
+    .page-title {
+        font-size: 2.5em; /* Large font size */
+        font-weight: bold; /* Make it bold */
+        color: #333; /* Dark color for readability */
+        margin-bottom: 20px; /* Space below the title */
+        padding: 0 15px; /* Padding for responsiveness */
+        }    
+    
+
+        
+  /* Video list container */
+  .video-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Space between each video card */
+    margin-top: 20px;
+  }
+
+  /* Individual video card */
+  .video-card {
+    display: flex;
+    align-items: center;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    transition: transform 0.2s ease;
+    width: 300px; /* Limit the width of the card */
+    margin: 0 auto; /* Center the cards */
+  }
+
+  .video-card:hover {
+    transform: translateY(-5px);
+  }
+
+  /* Video box styling */
+  .video-box {
+    width: 100px; /* Set a smaller width for the video */
+    height: 100px; /* Set a smaller height for the video */
+    object-fit: cover; /* Ensure the video fits within the box */
+    margin-right: 15px;
+  }
+
+  .video-info {
+    flex-grow: 1;
+    color: #333;
+  }
+
+  .video-info h3 {
+    font-size: 1.1em;
+    margin: 0 0 5px;
+  }
+
+  .video-info p {
+    font-size: 0.9em;
+    color: #666;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 10px;
+  }
+
+  .btn:hover {
+    background-color: #0056b3;
+  }
+
+  /* For better spacing between the video cards */
+  .video-card:not(:last-child) {
+    margin-bottom: 20px; /* Adds space below each card */
+  }
+</style>
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
+
+
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="{% url 'video_list' %}">Home</a>
+            <a href="{% url 'video_upload' %}">Upload Video</a>
+        </nav>
+    </header>
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>

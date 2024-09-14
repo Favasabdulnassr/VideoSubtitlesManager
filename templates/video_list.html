@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Video List{% endblock %}
+{% block content %}
+  <h1 class="page-title">Uploaded Videos</h1>
+
+  {% if videos %}
+    <div class="video-list">
+      {% for video in videos %}
+        <div class="video-card">
+          <video class="video-box" autoplay muted loop>
+            <source src="{{ video.video_file.url }}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+          <div class="video-info">
+            <h3>{{ video.title }}</h3>
+            <p>Uploaded: {{ video.uploaded_at }}</p>
+            <a href="{% url 'video_detail' video.id %}" class="btn">Watch Video</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No videos available. <a class="btn" href="{% url 'video_upload' %}">Upload a New Video</a></p>
+  {% endif %}
+
+{% endblock %}

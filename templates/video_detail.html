@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ video.title }}{% endblock %}
+
+{% block content %}
+  <h1>{{ video.title }}</h1>
+  <video id="video_player" class="video-js vjs-default-skin" controls preload="auto" width="600" data-setup='{}'>
+    <source src="{{ video.video_file.url }}#t={{ start_time|default:'0' }}" type="video/mp4">
+    
+    {% if subtitles %}
+        {% for subtitle in subtitles %}
+          <track
+           label="{{subtitle.language|upper}}"
+           kind="subtitles" 
+           srclang="{{subtitle.language}}" 
+           src="{{subtitle.file.url }}"
+          {% if subtitle.language == "eng" %}default{% endif %}>
+        {% endfor %}
+
+    {% endif %}
+    Your browser does not support the video tag.
+  </video>
+
+    <!-- Subtitle language selection dropdown -->
+    <label for="subtitle_select">Choose Subtitle Language:</label>
+    <select id="subtitle_select">
+      {% for subtitle in subtitles %}
+        <option value="{{ subtitle.language }}"{% if subtitle.language == "en" %}selected{% endif %} > 
+          {{ subtitle.language|upper }}
+        </option>
+      {% endfor %}
+    </select>
+
+  <h3>Search Subtitles</h3>
+  <form id="search_form">
+    {% csrf_token %}
+    <input type="text" name="q" id="query_input" placeholder="Search subtitles..." required>
+    <button type="submit" id="submit_btn">Search</button>
+  </form>
+
+  <div id="results"></div>
+
+  <script>
+    // Initialize the Video.js player
+    var player = videojs('video_player', {
+        controls: true,
+        autoplay: false,
+        preload: 'auto'
+        
+    });
+
+    
+
+     // Subtitle language change functionality
+     document.getElementById('subtitle_select').addEventListener('change', function() {
+      const selectedLanguage = this.value;
+      const tracks = player.textTracks();
+
+      // Disable all tracks and enable the selected one
+      for (let i = 0; i < tracks.length; i++) {
+        const track = tracks[i];
+        track.mode = track.language === selectedLanguage ? 'showing' : 'disabled';
+      }
+    });
+
+
+
+    // Search form functionality for fetching subtitles
+    document.getElementById('search_form').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent the default form submission
+
+      const query = document.getElementById('query_input').value.toLowerCase(); // Convert query to lower case for case-insensitive search
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value; // Retrieve CSRF token
+      const selectedLanguage = document.getElementById('subtitle_select').value; // Get selected language
+
+
+      fetch('{% url "video_detail" video.id %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': csrfToken
+        },
+        body: new URLSearchParams({ 'q': query, 'language':selectedLanguage })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = ''; // Clear previous results
+
+        if (data.results && data.results.length > 0) {
+          const ul = document.createElement('ul');
+          data.results.forEach(result => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = '#'; // Prevent default link behavior
+            a.textContent = `${result.timestamp} - ${result.line}`;
+            a.dataset.timestamp = result.timestamp;
+            li.appendChild(a);
+            ul.appendChild(li);
+          });
+          resultsDiv.appendChild(ul);
+        } else {
+          resultsDiv.innerHTML = '<p>No results found.</p>';
+        }
+      })
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+      });
+    });
+
+    // Example of seeking to a particular time from search results
+    document.getElementById('results').addEventListener('click', function(e) {
+      if (e.target.tagName === 'A') {
+        event.preventDefault();
+        const timestamp = e.target.dataset.timestamp;
+        const timeInSeconds = convertTimestampToSeconds(timestamp);
+        player.currentTime(timeInSeconds);
+        player.play();  // Optional: play from the searched subtitle time
+      }
+    });
+
+    // Helper function to convert timestamp to seconds
+    function convertTimestampToSeconds(timestamp) {
+      const timeParts = timestamp.split(':').map(part=>parseFloat(part.replace(',','.')));
+      let seconds = 0;
+      if (timeParts.length === 3) { // HH:MM:SS
+        seconds = timeParts[0] * 3600 + timeParts[1] * 60 + timeParts[2];
+      } else if (timeParts.length === 2) { // MM:SS
+        seconds = timeParts[0] * 60 + timeParts[1];
+      } else if (timeParts.length === 1) { // SS
+        seconds = timeParts[0];
+      }
+      return seconds;
+    }
+  </script>
+
+{% endblock %}
