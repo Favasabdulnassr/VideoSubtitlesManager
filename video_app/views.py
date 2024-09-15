@@ -135,14 +135,18 @@ class videoCreateView(CreateView):
         print('FFmpeg Output:', output)
 
         subtitles_list = []
+        subtitle_counter = 0
+
         
         for line in output.splitlines():
             if "Subtitle:" in line:
-                language = line.split('(')[1].split(')')[0]  
+                subtitle_counter += 1
+                if '(' in line and ')' in line:
+                    language = line.split('(')[1].split(')')[0]
+                else:
+                    language = f"unknown_{subtitle_counter}"
                 subtitles_list.append(language)
-        
-        print('Subtitles List:', subtitles_list)
-        
+
         return subtitles_list
 
 

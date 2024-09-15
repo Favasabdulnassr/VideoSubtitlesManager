@@ -1,0 +1,32 @@
+version: "3.8"
+services:
+  postgres_db:
+    image: postgres:latest
+    container_name: postgres_container
+    environment:
+      POSTGRES_DB: 'video_subtitle_extraction'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: '3636'  
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    volumes:
+      - .:/app
+    container_name: video_project_container
+    ports:
+      - 8000:8000
+    image: app:video_project
+    command: bash -c "
+      apt-get update &&
+      apt-get install -y postgresql-client &&
+      python manage.py makemigrations &&
+      python manage.py migrate &&
+      python manage.py collectstatic --noinput &&
+      gunicorn --bind 0.0.0.0:8000 video_project.wsgi:application"
+    depends_on:
+      - postgres_db
+
+volumes:
+  postgres_data:
