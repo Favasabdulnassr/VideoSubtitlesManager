@@ -1,7 +1,8 @@
 import subprocess
 from django.conf import settings
+from django.contrib import messages
 from django.shortcuts import redirect
-from django.views.generic import ListView, DetailView, CreateView
+from django.views.generic import ListView, DetailView, CreateView, DeleteView
 from django.urls import reverse_lazy
 from .models import video,Subtitle
 from .forms import VideoUploadForm
@@ -169,3 +170,9 @@ class videoCreateView(CreateView):
             text_index=subtitle_text,
             language=language
         )
+
+
+class VideoDeleteView(DeleteView):
+    model = video
+    success_url = reverse_lazy('video_list')
+    template_name = 'video_confirm_delete.html'
